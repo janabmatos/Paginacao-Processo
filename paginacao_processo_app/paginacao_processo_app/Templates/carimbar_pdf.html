@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carimbar PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 16px;
+            color: #555555;
+            margin-bottom: 10px;
+        }
+
+        input[type="file"],
+        input[type="text"],
+        input[type="number"] {
+            display: block;
+            margin: 10px auto 20px;
+            padding: 10px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #888888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Carimbar PDF</h1>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="processo_numero">Número do Processo:</label>
+            <input type="text" id="processo_numero" name="processo_numero" placeholder="Ex: 40954/2023" required>
+            
+            <label for="rubrica">Rubrica:</label>
+            <input type="text" id="rubrica" name="rubrica" placeholder="Ex: Ismael" required>
+            
+            <label for="paginas">Páginas (Ex: 1,2,3 ou 1-5):</label>
+            <input type="text" id="paginas" name="paginas" placeholder="Ex: 1,2,3 ou 1-5" required>
+            
+            <label for="posicao_y">Posição Y (Margem Superior):</label>
+            <input type="number" id="posicao_y" name="posicao_y" placeholder="Ex: 50" required>
+            
+            <label for="tamanho_fonte">Tamanho da Fonte:</label>
+            <input type="number" id="tamanho_fonte" name="tamanho_fonte" placeholder="Ex: 10" required>
+            
+            <label for="pdf_file">Selecione um arquivo PDF:</label>
+            <input type="file" id="pdf_file" name="pdf_file" accept=".pdf" required>
+            
+            <button type="submit">Enviar e Carimbar</button>
+        </form>
+        <div class="footer">
+            <p>Desenvolvido por EMSERH</p>
+        </div>
+    </div>
+</body>
+</html>
