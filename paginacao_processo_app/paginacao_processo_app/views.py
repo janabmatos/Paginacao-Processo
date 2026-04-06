@@ -3,12 +3,13 @@ from django.http import HttpResponse
 from django.conf import settings
 import os
 from pathlib import Path  # Adicione esta importação
+from django.http import HttpResponse, FileResponse
+from io import BytesIO
 import fitz  # PyMuPDF
 
 def carimbar_pdf(request):
     if request.method == 'POST':
         try:
-            os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
             # Captura os valores enviados pelo formulário
             numero_processo = request.POST.get('processo_numero')
             rubrica = request.POST.get('rubrica')
@@ -21,17 +22,9 @@ def carimbar_pdf(request):
                 return HttpResponse("Erro: Nenhum arquivo PDF foi enviado.")
             
             pdf_file = request.FILES['pdf_file']
-            arquivo_entrada = os.path.join(settings.MEDIA_ROOT, pdf_file.name)
-            
-            # Salva o arquivo enviado no diretório de mídia
-            with open(arquivo_entrada, 'wb') as f:
-                for chunk in pdf_file.chunks():
-                    f.write(chunk)
-
-            arquivo_saida = os.path.join(settings.MEDIA_ROOT, f"Carimbado_{pdf_file.name}")
 
             # Processa o PDF
-            doc = fitz.open(arquivo_entrada)
+            doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
 
             # Converte as páginas especificadas em uma lista de índices
             paginas_para_carimbar = []
@@ -68,10 +61,16 @@ def carimbar_pdf(request):
                 # Inserindo o texto no PDF
                 pagina.insert_text((posicao_x, posicao_y), texto_carimbo, fontsize=tamanho_fonte, color=(0, 0, 0))
 
-            doc.save(arquivo_saida)
+            pdf_saida = doc.tobytes()
             doc.close()
 
-            return HttpResponse(f"PDF carimbado com sucesso! Arquivo salvo em: {arquivo_saida}")
+            nome_saida = f"Carimbado_{pdf_file.name}"
+            return FileResponse(
+                BytesIO(pdf_saida),
+                as_attachment=True,
+                filename=nome_saida,
+                content_type='application/pdf',
+            )
 
         except Exception as e:
             # Captura qualquer erro e retorna uma mensagem de erro
