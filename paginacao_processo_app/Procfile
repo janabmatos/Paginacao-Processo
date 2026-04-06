@@ -1,0 +1,1 @@
+web: gunicorn paginacao_processo_app.wsgi

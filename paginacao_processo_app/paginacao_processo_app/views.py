@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
 import os
+from pathlib import Path  # Adicione esta importação
 import fitz  # PyMuPDF
 
 def carimbar_pdf(request):
@@ -26,8 +27,9 @@ def carimbar_pdf(request):
                 for chunk in pdf_file.chunks():
                     f.write(chunk)
 
-            # Define o nome do arquivo de saída
-            arquivo_saida = os.path.join(settings.MEDIA_ROOT, f"Carimbado_{pdf_file.name}")
+            # Obtém o caminho da pasta Downloads do usuário
+            pasta_downloads = str(Path.home() / "Downloads")
+            arquivo_saida = os.path.join(pasta_downloads, f"Carimbado_{pdf_file.name}")
 
             # Processa o PDF
             doc = fitz.open(arquivo_entrada)
@@ -51,11 +53,13 @@ def carimbar_pdf(request):
                 # Lógica de numeração:
                 numero_folha = (i // 2) + 1
 
-                # Verifica se a página do PDF é ímpar (índice par no Python: 0, 2, 4...)
-                if i % 2 == 0:
+                # Alterna entre esquerda e direita
+                if i % 2 == 0:  # Página ímpar (índice par no Python: 0, 2, 4...)
                     texto_folha = f"{numero_folha:02d}"
-                else:
+                    posicao_x = largura - 140 # Canto superior esquerdo
+                else:  # Página par
                     texto_folha = f"{numero_folha:02d} V"
+                    posicao_x = 20 # Canto superior direito
 
                 # Adiciona o número da página ao texto do carimbo
                 texto_carimbo = (
@@ -63,7 +67,7 @@ def carimbar_pdf(request):
                 )
 
                 # Inserindo o texto no PDF
-                pagina.insert_text((20, posicao_y), texto_carimbo, fontsize=tamanho_fonte, color=(0, 0, 0))
+                pagina.insert_text((posicao_x, posicao_y), texto_carimbo, fontsize=tamanho_fonte, color=(0, 0, 0))
 
             doc.save(arquivo_saida)
             doc.close()
