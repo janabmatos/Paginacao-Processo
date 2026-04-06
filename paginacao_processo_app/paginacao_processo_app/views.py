@@ -8,6 +8,7 @@ import fitz  # PyMuPDF
 def carimbar_pdf(request):
     if request.method == 'POST':
         try:
+            os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
             # Captura os valores enviados pelo formulário
             numero_processo = request.POST.get('processo_numero')
             rubrica = request.POST.get('rubrica')
@@ -27,9 +28,7 @@ def carimbar_pdf(request):
                 for chunk in pdf_file.chunks():
                     f.write(chunk)
 
-            # Obtém o caminho da pasta Downloads do usuário
-            pasta_downloads = str(Path.home() / "Downloads")
-            arquivo_saida = os.path.join(pasta_downloads, f"Carimbado_{pdf_file.name}")
+            arquivo_saida = os.path.join(settings.MEDIA_ROOT, f"Carimbado_{pdf_file.name}")
 
             # Processa o PDF
             doc = fitz.open(arquivo_entrada)
