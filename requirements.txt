@@ -1,0 +1,1 @@
+-r paginacao_processo_app/requirements.txt
