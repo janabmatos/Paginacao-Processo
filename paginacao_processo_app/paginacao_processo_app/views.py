@@ -1,8 +1,4 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-from django.conf import settings
-import os
-from pathlib import Path  # Adicione esta importação
 from django.http import HttpResponse, FileResponse
 from io import BytesIO
 import fitz  # PyMuPDF
@@ -13,7 +9,7 @@ def carimbar_pdf(request):
             # Captura os valores enviados pelo formulário
             numero_processo = request.POST.get('processo_numero')
             rubrica = request.POST.get('rubrica')
-            paginas = request.POST.get('paginas')  # Captura as páginas
+            paginas = request.POST.get('paginas')  # Captura o intervalo da numeração (ex: 5-15)
             posicao_y = int(request.POST.get('posicao_y'))
             tamanho_fonte = int(request.POST.get('tamanho_fonte'))
             
@@ -26,24 +22,25 @@ def carimbar_pdf(request):
             # Processa o PDF
             doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
 
-            # Converte as páginas especificadas em uma lista de índices
-            paginas_para_carimbar = []
-            for parte in paginas.split(','):
-                if '-' in parte:
-                    inicio, fim = map(int, parte.split('-'))
-                    paginas_para_carimbar.extend(range(inicio - 1, fim))  # Ajusta para índice 0
-                else:
-                    paginas_para_carimbar.append(int(parte) - 1)  # Ajusta para índice 0
+            if '-' not in paginas:
+                return HttpResponse("Erro: informe o intervalo no formato início-fim. Ex: 5-15.")
 
-            for i in paginas_para_carimbar:
-                if i < 0 or i >= len(doc):
-                    continue  # Ignora páginas fora do intervalo
+            inicio_str, fim_str = paginas.split('-', 1)
+            inicio_num = int(inicio_str.strip())
+            fim_num = int(fim_str.strip())
 
+            if inicio_num <= 0 or fim_num < inicio_num:
+                return HttpResponse("Erro: intervalo inválido. Exemplo válido: 5-15.")
+
+            total_folhas = fim_num - inicio_num + 1
+            total_paginas_para_carimbar = min(len(doc), total_folhas * 2)
+
+            for i in range(total_paginas_para_carimbar):
                 pagina = doc[i]
                 largura = pagina.rect.width
 
                 # Lógica de numeração:
-                numero_folha = (i // 2) + 1
+                numero_folha = inicio_num + (i // 2)
 
                 # Alterna entre esquerda e direita
                 if i % 2 == 0:  # Página ímpar (índice par no Python: 0, 2, 4...)
